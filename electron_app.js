@@ -1,5 +1,6 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, protocol, session } = require('electron');
 const fs = require('fs');
+const path = require('path');
 
 function onFileSystemChange(filename, fn) {
     fs.watch(
