@@ -6,7 +6,23 @@
     <script src="elm.js"></script>
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
   </head>
-  <body style="background-color: #202020">
+<style>
+
+*::-webkit-scrollbar {
+    width: 4px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #2D2D2D;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #A0A0A0;
+    border-radius: 20px;
+}
+
+</style>
+  <body style="background-color: #202020;">
       <div id='elm'></div>
 <script>
 var app = Elm.Main.init({
@@ -17,6 +33,74 @@ var app = Elm.Main.init({
 
 // Custom Elements go after here
 // See https://github.com/WimbledonLabs/bideorai/blob/master/frontend/index.html
+class AssetPreview extends HTMLElement {
+    constructor() {
+        // Always call super first in constructor
+        super();
+
+        var root;
+        // Create a shadow root
+        root = this.attachShadow({mode: 'open'});
+
+        var container = document.createElement('div');
+
+        root.appendChild(container);
+
+        this.container = container;
+
+        this.src = null;
+        this.mimetype = null;
+    }
+
+    static get observedAttributes() { return ["src", "mime-type"]; }
+    attributeChangedCallback(name, oldValue, newValue) {
+        console.log(name + ": " + oldValue + " -> " + newValue);
+        if (name == "src") {
+            this.src = newValue;
+
+            // Updating the container should only happen after both src and
+            // mimetype have been updated. We set "src" as the second attribute
+            // so that it changes last. This let's us consistently know that
+            // we need to change the preview when the src changes. If the src
+            // changes first, we wouldn't know what kind of preview to make, and
+            // we may not change the mimetype if just the src changes.
+            //
+            // Changing the src second, and updating the contents when the src
+            // changes is the reliable way to do this.
+            if (this.src && this.mimetype) {
+                if (this.mimetype == "text/plain" || this.mimetype == "application/javascript") {
+                    var textPreview = document.createElement('pre');
+                    textPreview.style.margin = 0;
+                    textPreview.style.padding = "4px";
+
+                    this.container.innerHTML = "";
+                    this.container.appendChild(textPreview);
+
+                    fetch(this.src)
+                      .then(response => response.text())
+                      .then(
+                          text => textPreview.innerText = text
+                      );
+                } else if (this.mimetype == "image/png") {
+                    var imagePreview = document.createElement('img');
+                    imagePreview.src = this.src + ".png";
+
+                    this.container.innerHTML = "";
+                    this.container.appendChild(imagePreview);
+                }
+            }
+        } else if (name == "mime-type") {
+            this.mimetype = newValue;
+            this.container.innerHTML = "No Preview";
+        } else {
+            console.log("ERROR!" + " unknown property " + name);
+        }
+
+    }
+}
+
+customElements.define('asset-preview', AssetPreview);
+
 </script>
   </body>
 </html>

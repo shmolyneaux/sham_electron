@@ -25,7 +25,7 @@ fs.watch(
                 // I never use node, this works, but I don't want to spend the
                 // time to improve this right now.
                 if (timeoutCount == updateCount) {
-                    console.log('============================================================');
+                    console.log('\n\n\n\n\n============================================================');
                     console.log(`${filename} updated, rebuilding elm`);
                     // Running elm make directly was giving me weird results in
                     // cygwin. This was also a problem with elm-live...
